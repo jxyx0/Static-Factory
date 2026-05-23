@@ -1,0 +1,68 @@
+package game.behaviours;
+
+import edu.monash.fit2099.engine.actions.Action;
+import edu.monash.fit2099.engine.actions.DoNothingAction;
+import edu.monash.fit2099.engine.actions.MoveActorAction;
+import edu.monash.fit2099.engine.actors.Actor;
+import edu.monash.fit2099.engine.actors.Behaviour;
+import edu.monash.fit2099.engine.positions.Exit;
+import edu.monash.fit2099.engine.positions.GameMap;
+import edu.monash.fit2099.engine.positions.Location;
+
+public class FollowBehaviour implements Behaviour {
+
+    private final Actor target;
+
+    /**
+     * Constructor.
+     *
+     * @param subject the Actor to follow
+     */
+    public FollowBehaviour(Actor subject) {
+        this.target = subject;
+    }
+
+    /**
+     * Always follow the target, if the target is already in the surrounding, it will just do nothing
+     * return null if there is no target to follow
+     * @param actor the Actor acting
+     * @param map the GameMap containing the Actor
+     * @return an action that will make the bug keep on following the target
+     */
+    @Override
+    public Action getAction(Actor actor, GameMap map) {
+        System.out.println(actor.toString() + target.toString());
+        if(!map.contains(target) || !map.contains(actor))
+            return null;
+
+        Location here = map.locationOf(actor);
+        Location there = map.locationOf(target);
+
+        int currentDistance = distance(here, there);
+        for (Exit exit : here.getExits()) {
+            Location destination = exit.getDestination();
+            if (destination.canActorEnter(actor)) {
+                int newDistance = distance(destination, there);
+                if (newDistance < currentDistance) {
+                    return new MoveActorAction(destination, exit.getName());
+                }
+            }
+        }
+
+        return new DoNothingAction();
+    }
+
+
+
+    /**
+     * Compute the Manhattan distance between two locations.
+     *
+     * @param a the first location
+     * @param b the first location
+     * @return the number of steps between a and b if you only move in the four cardinal directions.
+     */
+    private int distance(Location a, Location b) {
+        return Math.abs(a.x() - b.x()) + Math.abs(a.y() - b.y());
+    }
+
+}
